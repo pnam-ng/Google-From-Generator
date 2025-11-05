@@ -33,8 +33,11 @@ pip install -r requirements.txt
    - Navigate to "APIs & Services" > "Library"
    - Enable **Google Forms API** (search and enable)
    - Enable **Google Drive API** (search and enable) - REQUIRED!
+   - Enable **Google Docs API** (search and enable) - Required for Docs link feature
    
-   **Note:** Google Forms API requires Google Drive API to create forms. Both must be enabled.
+   **Note:** 
+   - Google Forms API requires Google Drive API to create forms. Both must be enabled.
+   - Google Docs API is needed if you want to generate forms from Google Docs links.
 
 4. Create OAuth 2.0 Credentials:
    - Go to "APIs & Services" > "Credentials"

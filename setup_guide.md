@@ -58,7 +58,15 @@ pip3 install -r requirements.txt
 3. Click on "Google Drive API"
 4. Click the "Enable" button
 
-**⚠️ IMPORTANT:** Google Forms API requires Google Drive API to create forms. Both must be enabled!
+**C. Enable Google Docs API (REQUIRED for Docs link feature):**
+1. Still in "APIs & Services" > "Library"
+2. Search for "Google Docs API"
+3. Click on "Google Docs API"
+4. Click the "Enable" button
+
+**⚠️ IMPORTANT:** 
+- Google Forms API requires Google Drive API to create forms. Both must be enabled!
+- Google Docs API is required if you want to use the "Google Docs Link" feature to generate forms from Google Docs documents.
 
 #### 3.3 Configure OAuth Consent Screen
 

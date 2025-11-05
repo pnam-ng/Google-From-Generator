@@ -392,7 +392,56 @@ async function createForm(method, data = null, file = null) {
             });
         }
         
-        const result = await response.json();
+        // Check if response is OK (status 200-299)
+        if (!response.ok) {
+            // Try to parse error response as JSON
+            let errorData;
+            try {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    errorData = await response.json();
+                } else {
+                    // If not JSON, read as text (might be HTML error page)
+                    const errorText = await response.text();
+                    console.error('Non-JSON error response:', errorText.substring(0, 200));
+                    errorData = {
+                        success: false,
+                        error: `Server error (${response.status}): ${response.statusText}`,
+                        message: 'The server returned an error. Please check the server logs.'
+                    };
+                }
+            } catch (parseError) {
+                // If parsing fails, create error object
+                errorData = {
+                    success: false,
+                    error: `Server error (${response.status}): ${response.statusText}`,
+                    message: 'Unable to parse server response. Please check your connection.'
+                };
+            }
+            
+            addLogEntry(logContent, 'error', `❌ Error: ${errorData.error || errorData.message || 'Unknown error'}`);
+            showError(errorData.error || errorData.message || 'Failed to create form. Please try again.');
+            return;
+        }
+        
+        // Parse JSON response
+        let result;
+        try {
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Non-JSON response received:', text.substring(0, 200));
+                addLogEntry(logContent, 'error', '❌ Server returned non-JSON response');
+                showError('Server returned an unexpected response format. Please try again.');
+                return;
+            }
+            result = await response.json();
+        } catch (jsonError) {
+            console.error('JSON parse error:', jsonError);
+            addLogEntry(logContent, 'error', `❌ Error parsing response: ${jsonError.message}`);
+            showError('Error parsing server response. Please try again.');
+            return;
+        }
         
         // Display logs
         if (result.logs && result.logs.length > 0) {
@@ -851,7 +900,56 @@ function setupCreateFormButton() {
                     })
                 });
                 
-                const result = await response.json();
+                // Check if response is OK
+                if (!response.ok) {
+                    let errorData;
+                    try {
+                        const contentType = response.headers.get('content-type');
+                        if (contentType && contentType.includes('application/json')) {
+                            errorData = await response.json();
+                        } else {
+                            const errorText = await response.text();
+                            console.error('Non-JSON error response:', errorText.substring(0, 200));
+                            errorData = {
+                                success: false,
+                                error: `Server error (${response.status}): ${response.statusText}`
+                            };
+                        }
+                    } catch (parseError) {
+                        errorData = {
+                            success: false,
+                            error: `Server error (${response.status}): ${response.statusText}`
+                        };
+                    }
+                    if (logContent) {
+                        addLogEntry(logContent, 'error', `❌ Error: ${errorData.error || errorData.message || 'Unknown error'}`);
+                    }
+                    showError(errorData.error || errorData.message || 'Failed to create form. Please try again.');
+                    return;
+                }
+                
+                // Parse JSON response
+                let result;
+                try {
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        const text = await response.text();
+                        console.error('Non-JSON response received:', text.substring(0, 200));
+                        if (logContent) {
+                            addLogEntry(logContent, 'error', '❌ Server returned non-JSON response');
+                        }
+                        showError('Server returned an unexpected response format. Please try again.');
+                        return;
+                    }
+                    result = await response.json();
+                } catch (jsonError) {
+                    console.error('JSON parse error:', jsonError);
+                    if (logContent) {
+                        addLogEntry(logContent, 'error', `❌ Error parsing response: ${jsonError.message}`);
+                    }
+                    showError('Error parsing server response. Please try again.');
+                    return;
+                }
                 
                 // Display logs
                 if (result.logs && result.logs.length > 0 && logContent) {

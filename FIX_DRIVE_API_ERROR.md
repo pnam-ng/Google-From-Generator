@@ -59,6 +59,7 @@ python quick_start.py
 Đảm bảo bạn thấy:
 - ✅ **Google Drive API**
 - ✅ **Google Forms API**
+- ✅ **Google Docs API** (nếu bạn sử dụng tính năng Google Docs link)
 
 ## Hình ảnh minh họa (Visual Guide)
 
@@ -137,9 +138,10 @@ To see which APIs are enabled:
 
 1. Go to Google Cloud Console
 2. Click "APIs & Services" > "Enabled APIs"
-3. You should see both:
+3. You should see:
    - ✅ **Google Drive API**
    - ✅ **Google Forms API**
+   - ✅ **Google Docs API** (if using Google Docs link feature)
 
 ### Important Notes
 

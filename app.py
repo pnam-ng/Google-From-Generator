@@ -550,6 +550,41 @@ def health_check():
         'ai_initialized': ai_creator is not None
     })
 
+@app.errorhandler(404)
+def not_found(error):
+    """Handle 404 errors with JSON."""
+    return jsonify({
+        'success': False,
+        'error': 'Endpoint not found',
+        'message': 'The requested API endpoint does not exist.'
+    }), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors with JSON."""
+    import traceback
+    error_details = traceback.format_exc()
+    print(f"Internal Server Error: {error_details}")
+    return jsonify({
+        'success': False,
+        'error': 'Internal server error',
+        'message': 'An unexpected error occurred. Please check the server logs.',
+        'details': str(error) if os.getenv('DEBUG', 'False').lower() == 'true' else None
+    }), 500
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Handle all unhandled exceptions with JSON."""
+    import traceback
+    error_details = traceback.format_exc()
+    print(f"Unhandled Exception: {error_details}")
+    return jsonify({
+        'success': False,
+        'error': 'An unexpected error occurred',
+        'message': str(e),
+        'details': error_details if os.getenv('DEBUG', 'False').lower() == 'true' else None
+    }), 500
+
 if __name__ == '__main__':
     import webbrowser
     from threading import Timer
