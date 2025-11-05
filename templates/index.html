@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Google Form Creator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_components.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI-Powered Google Form Creator</h1>
+            <p class="subtitle">Create professional Google Forms instantly from text or documents</p>
+        </header>
+
+        <main>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="text">📝 Text Input</button>
+                <button class="tab-btn" data-tab="file">📄 File Upload</button>
+                <button class="tab-btn" data-tab="docs">🔗 Google Docs Link</button>
+                <button class="tab-btn" data-tab="script">📜 Form Script</button>
+            </div>
+
+            <!-- Text Input Tab -->
+            <div class="tab-content active" id="text-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📝 Describe Your Form</h2>
+                        <p class="help-text">Enter your form requirements or description. The AI will automatically create a professional Google Form for you.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="text-input" class="form-label">Form Requirements</label>
+                        <textarea 
+                            id="text-input" 
+                            class="form-textarea"
+                            placeholder="Example: Create a customer feedback form with:
+- Customer name (required)
+- Email address (required)
+- Rating (1-5 scale)
+- Product satisfaction (very satisfied, satisfied, neutral, dissatisfied, very dissatisfied)
+- Comments and suggestions"
+                            rows="10"
+                        ></textarea>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label class="setting-label">Default Question Setting:</label>
+                        <div class="setting-buttons">
+                            <button class="btn-setting" id="set-default-required-btn">
+                                ✓ All Required
+                            </button>
+                            <button class="btn-setting" id="set-default-optional-btn">
+                                ○ All Optional
+                            </button>
+                        </div>
+                        <span class="setting-hint">💡 You can change this after preview</span>
+                    </div>
+                    
+                    <button class="btn-primary btn-large" id="create-from-text-btn">
+                        <span class="btn-text">✨ Create Form</span>
+                        <span class="btn-loader" style="display: none;">⏳ Creating...</span>
+                    </button>
+                    
+                    <!-- Log Console -->
+                    <div id="log-console-text" class="log-console" style="display: none;">
+                        <div class="log-header">📊 Generation Log</div>
+                        <div id="log-content-text"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Upload Tab -->
+            <div class="tab-content" id="file-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📄 Upload Your Document</h2>
+                        <p class="help-text">Upload a document (TXT, PDF, Word, Excel) and we'll create a form based on its content.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="upload-area" id="upload-area">
+                            <div class="upload-icon">📁</div>
+                            <p class="upload-text">Drag and drop your file here, or <span class="upload-link">click to browse</span></p>
+                            <p class="upload-hint">Supported: TXT, PDF, DOCX, XLSX, CSV (Max 16MB)</p>
+                            <input type="file" id="file-input" accept=".txt,.pdf,.docx,.doc,.csv,.xlsx,.xls" style="display: none;">
+                        </div>
+                        
+                        <div id="file-info" class="file-info" style="display: none;">
+                            <span class="file-name"></span>
+                            <button class="btn-remove" id="remove-file-btn" aria-label="Remove file">✕</button>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label class="setting-label">Default Question Setting:</label>
+                        <div class="setting-buttons">
+                            <button class="btn-setting" id="set-default-required-btn-file">
+                                ✓ All Required
+                            </button>
+                            <button class="btn-setting" id="set-default-optional-btn-file">
+                                ○ All Optional
+                            </button>
+                        </div>
+                        <span class="setting-hint">💡 You can change this after preview</span>
+                    </div>
+                    
+                    <button class="btn-primary btn-large" id="create-from-file-btn" disabled>
+                        <span class="btn-text">✨ Create Form</span>
+                        <span class="btn-loader" style="display: none;">⏳ Creating...</span>
+                    </button>
+                    
+                    <!-- Log Console -->
+                    <div id="log-console-file" class="log-console" style="display: none;">
+                        <div class="log-header">📊 Generation Log</div>
+                        <div id="log-content-file"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Docs Link Tab -->
+            <div class="tab-content" id="docs-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>🔗 Google Docs Link</h2>
+                        <p class="help-text">Paste a link to a Google Docs document and we'll create a form based on its content.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="docs-url-input" class="form-label">Document URL</label>
+                        <input 
+                            type="text" 
+                            id="docs-url-input" 
+                            placeholder="https://docs.google.com/document/d/1ABC123..."
+                            class="form-input"
+                        />
+                        <div class="form-hint">
+                            <p><strong>💡 Supported formats:</strong></p>
+                            <ul>
+                                <li>https://docs.google.com/document/d/DOC_ID/edit</li>
+                                <li>https://docs.google.com/document/d/DOC_ID/view</li>
+                                <li>https://docs.google.com/document/d/DOC_ID</li>
+                            </ul>
+                            <p><strong>Note:</strong> The document must be accessible with your Google account.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label class="setting-label">Default Question Setting:</label>
+                        <div class="setting-buttons">
+                            <button class="btn-setting" id="set-default-required-btn-docs">
+                                ✓ All Required
+                            </button>
+                            <button class="btn-setting" id="set-default-optional-btn-docs">
+                                ○ All Optional
+                            </button>
+                        </div>
+                        <span class="setting-hint">💡 You can change this after preview</span>
+                    </div>
+                    
+                    <button class="btn-primary btn-large" id="create-from-docs-btn">
+                        <span class="btn-text">✨ Create Form</span>
+                        <span class="btn-loader" style="display: none;">⏳ Creating...</span>
+                    </button>
+                    
+                    <!-- Log Console -->
+                    <div id="log-console-docs" class="log-console" style="display: none;">
+                        <div class="log-header">📊 Generation Log</div>
+                        <div id="log-content-docs"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Script Tab -->
+            <div class="tab-content" id="script-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>📜 Form Script</h2>
+                        <p class="help-text">Upload a Google Apps Script file (.gs, .js) or JSON file, or paste the script directly.</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Upload Script File (Optional)</label>
+                        <div class="upload-area" id="script-upload-area">
+                            <div class="upload-icon">📜</div>
+                            <p class="upload-text">Drag and drop your script file here, or <span class="upload-link">click to browse</span></p>
+                            <p class="upload-hint">Supported: Google Apps Script (.gs, .js) or JSON (.json) files</p>
+                            <input type="file" id="script-file-input" accept=".gs,.js,.json" style="display: none;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-divider">
+                        <span>OR</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="script-text-input" class="form-label">Paste Script (Google Apps Script or JSON)</label>
+                        <textarea 
+                            id="script-text-input" 
+                            class="form-textarea code-textarea"
+                            placeholder='// Google Apps Script format:
+function createForm() {
+  var form = FormApp.create("My Form");
+  form.addTextItem().setTitle("Question 1").setRequired(true);
+}
+
+// OR JSON format:
+{"title": "My Form", "questions": [{"text": "Question 1", "type": "text", "required": true}]}'
+                            rows="15"
+                        ></textarea>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <label class="setting-label">Default Question Setting:</label>
+                        <div class="setting-buttons">
+                            <button class="btn-setting" id="set-default-required-btn-script">
+                                ✓ All Required
+                            </button>
+                            <button class="btn-setting" id="set-default-optional-btn-script">
+                                ○ All Optional
+                            </button>
+                        </div>
+                        <span class="setting-hint">💡 Applied to questions without required field</span>
+                    </div>
+                    
+                    <button class="btn-primary btn-large" id="create-from-script-btn">
+                        <span class="btn-text">✨ Create Form</span>
+                        <span class="btn-loader" style="display: none;">⏳ Creating...</span>
+                    </button>
+                    
+                    <!-- Log Console -->
+                    <div id="log-console-script" class="log-console" style="display: none;">
+                        <div class="log-header">📊 Generation Log</div>
+                        <div id="log-content-script"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Preview Section -->
+            <div id="question-preview-section" class="result-section" style="display: none;">
+                <div class="card" style="background: var(--card-bg); border: 2px solid var(--primary-color);">
+                    <div style="margin-bottom: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 20px;">
+                        <h2 style="margin-bottom: 12px; color: var(--text-primary);">📋 Review & Edit Questions</h2>
+                        <p class="help-text" style="margin-bottom: 16px;">Review the generated questions and toggle <strong style="color: var(--primary-color);">Required/Optional</strong> for each question before creating the form.</p>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                            <button class="btn-secondary" id="select-all-required-btn" style="font-size: 0.95rem; padding: 10px 20px; font-weight: 600;">
+                                ✓ Set All Required
+                            </button>
+                            <button class="btn-secondary" id="select-all-optional-btn" style="font-size: 0.95rem; padding: 10px 20px; font-weight: 600;">
+                                ○ Set All Optional
+                            </button>
+                            <span style="font-size: 0.9rem; color: var(--text-secondary); margin-left: auto;">
+                                💡 Toggle switch: <span style="color: #10b981; font-weight: 600;">Green = Required</span> | <span style="color: #64748b; font-weight: 600;">Gray = Optional</span>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div id="questions-list" style="margin-bottom: 24px; min-height: 100px; width: 100%; overflow-x: visible;"></div>
+                    
+                    <div class="preview-actions">
+                        <button class="btn-primary" id="create-form-btn">
+                            <span class="btn-text">✨ Create Form</span>
+                            <span class="btn-loader" style="display: none;">⏳ Creating...</span>
+                        </button>
+                        <button class="btn-secondary" id="back-to-edit-btn">← Back to Edit</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Section -->
+            <div id="result-section" class="result-section" style="display: none;">
+                <div class="result-card success">
+                    <div class="result-icon">✅</div>
+                    <h2>Form Created Successfully!</h2>
+                    <p class="result-message">Your Google Form has been created and is ready to use.</p>
+                    <div class="result-actions">
+                        <a href="#" id="form-url" target="_blank" class="btn-success">View Form</a>
+                        <a href="#" id="form-edit-url" target="_blank" class="btn-secondary">Edit Form</a>
+                        <button class="btn-secondary" id="create-another-btn">Create Another</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Section -->
+            <div id="error-section" class="result-section" style="display: none;">
+                <div class="result-card error">
+                    <div class="result-icon">❌</div>
+                    <h2>Error Creating Form</h2>
+                    <p class="error-message" id="error-message"></p>
+                    <div class="result-actions">
+                        <button class="btn-primary" id="try-again-btn">Try Again</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by Google Gemini AI & Google Forms API</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+

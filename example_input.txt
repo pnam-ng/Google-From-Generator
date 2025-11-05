@@ -1,0 +1,21 @@
+Tôi cần tạo form khảo sát về sản phẩm mới với các thông tin sau:
+
+1. Thông tin khách hàng:
+   - Họ và tên (bắt buộc)
+   - Email (bắt buộc)
+   - Số điện thoại
+   - Tuổi (dropdown: 18-25, 26-35, 36-45, 46+)
+
+2. Đánh giá sản phẩm:
+   - Mức độ hài lòng với sản phẩm (thang điểm 1-10)
+   - Khả năng giới thiệu sản phẩm cho người khác (có/không/có thể)
+   - Điểm mạnh của sản phẩm (chọn nhiều: giá cả, chất lượng, thiết kế, dịch vụ)
+
+3. Góp ý:
+   - Điểm cần cải thiện
+   - Gợi ý khác (để trống)
+
+4. Thông tin bổ sung:
+   - Ngày khảo sát
+   - Thời gian sử dụng sản phẩm
+
