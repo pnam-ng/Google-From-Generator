@@ -158,10 +158,22 @@ class GoogleFormGenerator:
                         # If browser can't be opened (e.g., on Render), use console flow
                         error_msg = str(browser_error).lower()
                         if 'browser' in error_msg or 'runnable' in error_msg:
-                            print("\n⚠️  Browser-based authentication not available (headless server).")
+                            print("\n" + "="*70)
+                            print("⚠️  Browser-based authentication not available (headless server)")
+                            print("="*70)
                             print("   Using console-based authentication...")
-                            print("   You'll need to manually authorize the application.\n")
-                            creds = flow.run_console()
+                            print("   This is normal on Render and other headless servers.\n")
+                            print("   Please check the logs below for the authorization URL.")
+                            print("   You'll need to visit the URL in your browser to authorize.\n")
+                            print("="*70 + "\n")
+                            try:
+                                creds = flow.run_console()
+                                print("\n✅ Authentication successful!")
+                            except Exception as console_error:
+                                print(f"\n❌ Console authentication failed: {console_error}")
+                                print("   Please check Render logs for the authorization URL")
+                                print("   and follow the instructions to complete authentication.\n")
+                                raise
                         else:
                             raise browser_error
                 except Exception as e:

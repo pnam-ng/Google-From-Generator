@@ -22,19 +22,19 @@ The `GEMINI_API_KEY` environment variable is either:
 3. Click **"Create API Key"**
 4. Copy the API key (starts with `AIza...`)
 
-**Or use your existing key:** `AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY`
+**Replace with your actual API key from Google AI Studio**
 
 ### Step 2: Set Environment Variable
 
 #### **Windows (Command Prompt):**
 ```cmd
-set GEMINI_API_KEY=AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY
+set GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
 python app.py
 ```
 
 #### **Windows (PowerShell):**
 ```powershell
-$env:GEMINI_API_KEY="AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY"
+$env:GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
 python app.py
 ```
 
@@ -49,7 +49,7 @@ python app.py
 Create a file named `.env` in your project root:
 
 ```env
-GEMINI_API_KEY=AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
 SECRET_KEY=your_secret_key_here
 ```
 
@@ -82,7 +82,7 @@ The app will automatically load variables from `.env` file.
 Add to `docker-compose.yml`:
 ```yaml
 environment:
-  - GEMINI_API_KEY=AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY
+  - GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
 ```
 
 Or use `.env` file (recommended).
@@ -122,7 +122,7 @@ echo $GEMINI_API_KEY
 
 Create `.env` in project root:
 ```env
-GEMINI_API_KEY=AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
 ```
 
 Make sure `.env` is in `.gitignore` (don't commit it to git!)
@@ -157,7 +157,7 @@ Run this to verify:
 ```bash
 # Set key
 export GEMINI_API_KEY="AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY"  # Linux/Mac
-set GEMINI_API_KEY=AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY      # Windows CMD
+set GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE      # Windows CMD
 
 # Verify
 python -c "import os; print('✅ Key set' if os.getenv('GEMINI_API_KEY') else '❌ Key not set')"

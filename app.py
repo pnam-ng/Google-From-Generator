@@ -112,6 +112,35 @@ def init_ai_creator():
             return False
         except Exception as e:
             error_msg = str(e)
+            error_lower = error_msg.lower()
+            
+            # Check if it's an OAuth/browser authentication error
+            if 'browser' in error_lower or 'runnable' in error_lower or 'oauth' in error_lower:
+                print(f"❌ OAuth Authentication Error: {error_msg}")
+                print(f"   Error type: {type(e).__name__}")
+                print(f"\n   This is an OAuth authentication issue, not a Gemini API issue.")
+                print(f"   The app needs to authenticate with Google on first startup.")
+                print(f"\n   How to fix:")
+                print(f"   1. Check Render logs for the authorization URL")
+                print(f"   2. Visit the URL in your browser to authorize")
+                print(f"   3. The app will automatically use console-based authentication")
+                print(f"   4. Or upload an existing token.pickle file to Render")
+                print(f"\n   See: FIX_HEADLESS_AUTH.md for detailed instructions")
+                return False
+            
+            # Check if it's a credentials file error
+            if 'credentials' in error_lower or 'not found' in error_lower:
+                print(f"❌ OAuth Credentials Error: {error_msg}")
+                print(f"   Error type: {type(e).__name__}")
+                print(f"\n   Missing OAuth credentials file.")
+                print(f"   How to fix:")
+                print(f"   1. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_PROJECT_ID")
+                print(f"      in Render Dashboard → Environment tab")
+                print(f"   2. Or upload credentials.json file to Render")
+                print(f"\n   See: FIX_RENDER_CREDENTIALS.md for detailed instructions")
+                return False
+            
+            # Generic error (likely Gemini API)
             print(f"❌ Error initializing AI Creator: {error_msg}")
             print(f"   Error type: {type(e).__name__}")
             print(f"   Please check:")

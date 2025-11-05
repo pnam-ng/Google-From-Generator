@@ -19,11 +19,11 @@ Go to Render Dashboard → Environment tab and set **ONE** of these:
 
 **Option 1 (Recommended):**
 - Key: `GEMINI_API_KEY`
-- Value: `AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY`
+- Value: `YOUR_GEMINI_API_KEY_HERE` (get from https://aistudio.google.com/app/apikey)
 
 **Option 2 (Also works):**
 - Key: `GOOGLE_API_KEY`
-- Value: `AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY`
+- Value: `YOUR_GEMINI_API_KEY_HERE` (get from https://aistudio.google.com/app/apikey)
 
 ## What I Fixed
 

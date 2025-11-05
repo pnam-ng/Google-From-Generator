@@ -242,7 +242,8 @@ def main():
     print("="*70)
     
     # Gemini API Key
-    GEMINI_API_KEY = "AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY"
+    # Get API key from environment variable or use placeholder
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "YOUR_API_KEY_HERE"
     
     # Initialize AI Form Creator
     creator = AIFormCreator(GEMINI_API_KEY)

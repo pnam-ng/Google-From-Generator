@@ -117,7 +117,8 @@
    ```
 4. **Environment Variables:**
    ```
-   GEMINI_API_KEY = AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY
+   GEMINI_API_KEY = YOUR_GEMINI_API_KEY_HERE
+     (Get from: https://aistudio.google.com/app/apikey)
    SECRET_KEY = (generate with: python -c "import secrets; print(secrets.token_hex(32))")
    FLASK_ENV = production
    DEBUG = False

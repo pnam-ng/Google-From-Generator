@@ -5,7 +5,8 @@ Quick test script for AI form creation
 from ai_form_creator import AIFormCreator
 
 # Gemini API Key
-GEMINI_API_KEY = "AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY"
+# Get your API key from: https://aistudio.google.com/app/apikey
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or "YOUR_API_KEY_HERE"
 
 def test_text_input():
     """Test form creation from text."""

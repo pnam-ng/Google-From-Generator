@@ -57,7 +57,7 @@ Your API key should:
 - ✅ Start with `AIza`
 - ✅ Be about 39 characters long
 - ✅ Have no spaces
-- ✅ Look like: `AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY`
+- ✅ Look like: `AIzaSy...` (starts with AIza, ~39 characters)
 
 ### Step 4: Wait for Redeploy
 

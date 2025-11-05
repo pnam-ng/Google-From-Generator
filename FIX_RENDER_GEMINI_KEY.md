@@ -16,7 +16,7 @@ The error "Failed to initialize AI creator" only happens on Render, not locally.
 3. Click **"Add Environment Variable"** button
 4. Fill in:
    - **Key:** `GEMINI_API_KEY`
-   - **Value:** `AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY`
+   - **Value:** `YOUR_GEMINI_API_KEY_HERE` (get from https://aistudio.google.com/app/apikey)
 5. Click **"Save Changes"**
 
 ### Step 3: Redeploy
@@ -36,7 +36,7 @@ The error "Failed to initialize AI creator" only happens on Render, not locally.
 2. **Add the Variable**
    - Click "Add Environment Variable"
    - Key: `GEMINI_API_KEY`
-   - Value: `AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY`
+   - Value: `YOUR_GEMINI_API_KEY_HERE` (get from https://aistudio.google.com/app/apikey)
    - Click "Save Changes"
 
 3. **Verify It's Added**
@@ -61,9 +61,11 @@ services:
     startCommand: python -m gunicorn --config gunicorn_config.py app:app
     plan: free
     healthCheckPath: /api/health
-    envVars:
+     envVars:
       - key: GEMINI_API_KEY
-        value: AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY  # ⚠️ NOT RECOMMENDED - visible in code
+        sync: false
+        # ⚠️ IMPORTANT: Set this value in Render Dashboard → Environment tab
+        # Do NOT hardcode API keys here. Use Render Dashboard instead.
       - key: SECRET_KEY
         generateValue: true
       - key: FLASK_ENV

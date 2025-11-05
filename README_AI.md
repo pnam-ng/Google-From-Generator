@@ -61,7 +61,7 @@ Script sẽ hỏi bạn:
 from ai_form_creator import AIFormCreator
 
 # Khởi tạo với Gemini API key
-GEMINI_API_KEY = "AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY"
+GEMINI_API_KEY = "YOUR_GEMINI_API_KEY_HERE"  # Get from https://aistudio.google.com/app/apikey
 creator = AIFormCreator(GEMINI_API_KEY)
 
 # Tạo form từ text

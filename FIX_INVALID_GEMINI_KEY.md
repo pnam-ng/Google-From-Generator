@@ -39,7 +39,7 @@ Your API key should:
 - ✅ Start with `AIza`
 - ✅ Be about 39 characters
 - ✅ Have no spaces or special characters (except dashes)
-- ✅ Look like: `AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY`
+- ✅ Look like: `AIzaSy...` (starts with AIza, ~39 characters)
 
 ### Step 3: Update Your Key
 

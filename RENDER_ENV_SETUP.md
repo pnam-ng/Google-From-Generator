@@ -26,7 +26,13 @@ Use the values from `.env.example` and add them in Render:
 1. **GEMINI_API_KEY**
    - Key: `GEMINI_API_KEY`
    - Value: Your Gemini API key (from https://aistudio.google.com/app/apikey)
-   - Example: `AIzaSyCzlgkxBgZ2gbF-WxHwE-v9Emw1JeHEYaY`
+   - **How to get:**
+     1. Go to https://aistudio.google.com/app/apikey
+     2. Sign in with your Google account
+     3. Click "Create API Key"
+     4. Copy the generated key
+     5. Paste it as the value in Render
+   - Format: Starts with `AIzaSy...` (long alphanumeric string)
 
 2. **SECRET_KEY**
    - Key: `SECRET_KEY`
