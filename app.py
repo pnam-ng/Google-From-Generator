@@ -193,7 +193,45 @@ def index():
     # Check if user is authenticated
     user_creds = session.get('user_credentials')
     user_email = user_creds.get('user_email', None) if user_creds else None
-    return render_template('index.html', user_logged_in=user_creds is not None, user_email=user_email)
+    
+    # If user_email is None or 'Unknown', try to refresh it
+    if user_creds and (not user_email or user_email == 'Unknown'):
+        try:
+            from google.oauth2.credentials import Credentials
+            from googleapiclient.discovery import build
+            
+            # Recreate credentials from session
+            creds = Credentials(
+                token=user_creds.get('token'),
+                refresh_token=user_creds.get('refresh_token'),
+                token_uri=user_creds.get('token_uri'),
+                client_id=user_creds.get('client_id'),
+                client_secret=user_creds.get('client_secret'),
+                scopes=user_creds.get('scopes', [])
+            )
+            
+            # Get user info
+            user_info_service = build('oauth2', 'v2', credentials=creds)
+            user_info = user_info_service.userinfo().get().execute()
+            user_email = user_info.get('email', None)
+            
+            # Update session with email
+            if user_email:
+                user_creds['user_email'] = user_email
+                session['user_credentials'] = user_creds
+                print(f"✅ Refreshed user email: {user_email}")
+        except Exception as e:
+            print(f"⚠️  Could not refresh user email: {e}")
+    
+    return render_template('index.html', user_logged_in=user_creds is not None, user_email=user_email or 'Unknown')
+
+@app.route('/help')
+def help_page():
+    """Help and guide page."""
+    # Check if user is authenticated
+    user_creds = session.get('user_credentials')
+    user_email = user_creds.get('user_email', None) if user_creds else None
+    return render_template('help.html', user_logged_in=user_creds is not None, user_email=user_email or 'Unknown')
 
 @app.route('/api/create-from-text', methods=['POST'])
 def create_from_text():
@@ -709,25 +747,39 @@ def check_credentials():
         # Primary location: /etc/secrets/credentials.json
         primary_location = '/etc/secrets/credentials.json'
         
+        # Get absolute path for project root
+        project_root = os.path.dirname(os.path.abspath(__file__))
+        project_root_creds = os.path.join(project_root, 'credentials.json')
+        
+        print(f"🔍 [CHECK-CREDENTIALS] Checking credentials...")
+        print(f"   Project root: {project_root}")
+        print(f"   Project root credentials: {project_root_creds}")
+        print(f"   Project root credentials exists: {os.path.exists(project_root_creds)}")
+        
         if credentials_file and os.path.exists(credentials_file):
             found_file = True
-            file_path = credentials_file
+            file_path = os.path.abspath(credentials_file)
+            print(f"✅ Found credentials via CREDENTIALS_FILE_PATH: {file_path}")
         else:
             # Check primary location first
             if os.path.exists(primary_location):
                 found_file = True
                 file_path = primary_location
+                print(f"✅ Found credentials at primary location: {file_path}")
             else:
-                # Check fallback locations
+                # Check fallback locations (use absolute paths)
                 fallback_locations = [
-                    'credentials.json',
-                    '/opt/render/project/src/credentials.json',
-                    os.path.expanduser('~/credentials.json'),
+                    project_root_creds,  # Project root (absolute path)
+                    'credentials.json',  # Relative path (current working directory)
+                    '/opt/render/project/src/credentials.json',  # Render project path
+                    os.path.expanduser('~/credentials.json'),  # Home directory
                 ]
                 for location in fallback_locations:
-                    if os.path.exists(location):
+                    abs_location = os.path.abspath(location) if not os.path.isabs(location) else location
+                    if os.path.exists(location) or os.path.exists(abs_location):
                         found_file = True
-                        file_path = location
+                        file_path = abs_location if os.path.exists(abs_location) else location
+                        print(f"✅ Found credentials at fallback location: {file_path}")
                         break
         
         # Check environment variables
@@ -773,12 +825,18 @@ def login():
         from google_auth_oauthlib.flow import Flow
         from google_form_generator import GoogleFormGenerator
         
+        print(f"🔍 [LOGIN] Starting OAuth login flow...")
+        print(f"   Current working directory: {os.getcwd()}")
+        
         # First, try to find or create credentials file
         # Check environment variable first
         credentials_file = os.getenv('CREDENTIALS_FILE_PATH')
+        print(f"   CREDENTIALS_FILE_PATH env var: {credentials_file}")
         
         # Primary location: /etc/secrets/credentials.json (works on both local and Render)
         primary_location = '/etc/secrets/credentials.json'
+        print(f"   Primary location: {primary_location}")
+        print(f"   Primary location exists: {os.path.exists(primary_location)}")
         
         # Ensure /etc/secrets/ directory exists (create if needed)
         secrets_dir = '/etc/secrets'
@@ -793,18 +851,31 @@ def login():
         
         # If not set via env var, check primary location first
         if not credentials_file or not os.path.exists(credentials_file):
+            print(f"   Checking primary location: {primary_location}")
             if os.path.exists(primary_location):
                 credentials_file = primary_location
+                print(f"✅ [LOGIN] Found credentials at primary location: {credentials_file}")
             else:
-                # Fallback locations
+                print(f"   Primary location not found, checking fallback locations...")
+                # Get absolute path for project root
+                project_root = os.path.dirname(os.path.abspath(__file__))
+                project_root_creds = os.path.join(project_root, 'credentials.json')
+                print(f"   Project root: {project_root}")
+                print(f"   Project root credentials: {project_root_creds}")
+                print(f"   Project root credentials exists: {os.path.exists(project_root_creds)}")
+                
+                # Fallback locations (check absolute paths first)
                 fallback_locations = [
-                    'credentials.json',  # Default location (project root)
+                    project_root_creds,  # Project root (absolute path) - CHECK THIS FIRST
+                    'credentials.json',  # Relative path (current working directory)
                     '/opt/render/project/src/credentials.json',  # Render project path
                     os.path.expanduser('~/credentials.json'),  # Home directory
                 ]
                 for location in fallback_locations:
-                    if os.path.exists(location):
-                        credentials_file = location
+                    abs_location = os.path.abspath(location) if not os.path.isabs(location) else location
+                    if os.path.exists(location) or os.path.exists(abs_location):
+                        credentials_file = abs_location if os.path.exists(abs_location) else location
+                        print(f"✅ [LOGIN] Found credentials at fallback location: {credentials_file}")
                         break
                 
                 # If still not found, use primary location (will create from env vars)
@@ -812,25 +883,34 @@ def login():
                     credentials_file = primary_location
         
         # If still not found, try to create from environment variables
+        print(f"   Final credentials_file value: {credentials_file}")
+        print(f"   credentials_file exists: {os.path.exists(credentials_file) if credentials_file else 'N/A'}")
+        
         if not credentials_file or not os.path.exists(credentials_file):
-            client_id = os.getenv('GOOGLE_CLIENT_ID')
-            client_secret = os.getenv('GOOGLE_CLIENT_SECRET')
-            project_id = os.getenv('GOOGLE_PROJECT_ID')
+            print(f"⚠️  [LOGIN] Credentials file not found, attempting to create from environment variables...")
+            client_id = os.getenv('GOOGLE_CLIENT_ID', '').strip()
+            client_secret = os.getenv('GOOGLE_CLIENT_SECRET', '').strip()
+            project_id = os.getenv('GOOGLE_PROJECT_ID', '').strip()
             
             # Debug logging
             print(f"🔍 Checking environment variables for OAuth credentials...")
-            print(f"   GOOGLE_CLIENT_ID: {'Set' if client_id else 'Not set'}")
-            print(f"   GOOGLE_CLIENT_SECRET: {'Set' if client_secret else 'Not set'}")
-            print(f"   GOOGLE_PROJECT_ID: {'Set' if project_id else 'Not set'}")
+            print(f"   GOOGLE_CLIENT_ID: {'Set (length: ' + str(len(client_id)) + ')' if client_id else 'Not set'}")
+            print(f"   GOOGLE_CLIENT_SECRET: {'Set (length: ' + str(len(client_secret)) + ')' if client_secret else 'Not set'}")
+            print(f"   GOOGLE_PROJECT_ID: {'Set (value: ' + project_id + ')' if project_id else 'Not set'}")
+            print(f"   Target credentials file: {credentials_file}")
             
             if client_id and client_secret and project_id:
                 try:
                     # Use primary location: /etc/secrets/credentials.json
-                    if not credentials_file:
+                    if not credentials_file or credentials_file == 'credentials.json':
                         credentials_file = primary_location
+                    
+                    print(f"📝 Attempting to create credentials file at: {credentials_file}")
                     
                     # Ensure /etc/secrets/ directory exists
                     creds_dir = os.path.dirname(credentials_file)
+                    print(f"📁 Credentials directory: {creds_dir}")
+                    
                     if not os.path.exists(creds_dir):
                         try:
                             os.makedirs(creds_dir, mode=0o755, exist_ok=True)
@@ -838,22 +918,36 @@ def login():
                         except (OSError, PermissionError) as e:
                             print(f"⚠️  Could not create {creds_dir}: {e}")
                             # Fallback to project root if /etc/secrets can't be created
+                            print(f"⚠️  Falling back to project root")
                             credentials_file = 'credentials.json'
                             creds_dir = '.'
                     
+                    # Verify directory exists now
+                    if not os.path.exists(creds_dir):
+                        raise Exception(f"Directory does not exist and could not be created: {creds_dir}")
+                    
                     # Create credentials.json from environment variables
                     import json
+                    # Use "web" type for web applications (not "installed" for desktop apps)
                     credentials_data = {
-                        "installed": {
+                        "web": {
                             "client_id": client_id,
                             "client_secret": client_secret,
                             "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                             "token_uri": "https://oauth2.googleapis.com/token",
                             "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                            "redirect_uris": ["http://localhost"]
+                            "redirect_uris": [
+                                "http://localhost:5000/auth/callback",
+                                "http://localhost/auth/callback",
+                                "https://localhost:5000/auth/callback"
+                            ]
                         },
                         "project_id": project_id
                     }
+                    
+                    print(f"💾 Writing credentials file to: {credentials_file}")
+                    print(f"   Directory exists: {os.path.exists(creds_dir)}")
+                    print(f"   Directory writable: {os.access(creds_dir, os.W_OK) if os.path.exists(creds_dir) else 'N/A'}")
                     
                     # Ensure directory exists (double check)
                     os.makedirs(creds_dir, mode=0o755, exist_ok=True)
@@ -863,7 +957,9 @@ def login():
                     
                     # Verify file was created
                     if os.path.exists(credentials_file):
-                        print(f"✅ Created credentials.json from environment variables at: {credentials_file}")
+                        file_size = os.path.getsize(credentials_file)
+                        print(f"✅ Created credentials.json from environment variables at: {credentials_file} (size: {file_size} bytes)")
+                        # File created successfully, continue with OAuth flow
                     else:
                         raise Exception(f"File was written but not found at: {credentials_file}")
                 except Exception as e:
@@ -900,17 +996,29 @@ def login():
                     'error': error_msg
                 }), 500
         
-        # Final verification
-        if not credentials_file or not os.path.exists(credentials_file):
-            # Additional debug info
-            print(f"❌ Credentials file not found at: {credentials_file}")
-            print(f"   Current working directory: {os.getcwd()}")
-            print(f"   Files in current directory: {os.listdir('.') if os.path.exists('.') else 'N/A'}")
-            
-            return jsonify({
-                'success': False,
-                'error': f'Credentials file not found at: {credentials_file}. Please configure OAuth credentials.'
-            }), 500
+        # Final verification (after potential creation from env vars)
+        # Re-check if file exists (it might have been created from env vars)
+        if not os.path.exists(credentials_file):
+            # Try to find it again in case it was created elsewhere
+            if os.path.exists(primary_location):
+                credentials_file = primary_location
+                print(f"✅ Found credentials file at primary location: {credentials_file}")
+            elif os.path.exists('credentials.json'):
+                credentials_file = 'credentials.json'
+                print(f"✅ Found credentials file at fallback location: {credentials_file}")
+            else:
+                # Additional debug info
+                print(f"❌ Credentials file not found at: {credentials_file}")
+                print(f"   Current working directory: {os.getcwd()}")
+                print(f"   Checking if /etc/secrets/ exists: {os.path.exists('/etc/secrets')}")
+                if os.path.exists('/etc/secrets'):
+                    print(f"   Files in /etc/secrets/: {os.listdir('/etc/secrets') if os.path.exists('/etc/secrets') else 'N/A'}")
+                print(f"   Files in current directory: {os.listdir('.') if os.path.exists('.') else 'N/A'}")
+                
+                return jsonify({
+                    'success': False,
+                    'error': f'Credentials file not found at: {credentials_file}. Please configure OAuth credentials. Check Render logs for detailed debug information.'
+                }), 500
         
         # Verify file is readable and valid JSON
         try:
@@ -919,7 +1027,18 @@ def login():
                 creds_data = json.load(f)
                 if 'installed' not in creds_data and 'web' not in creds_data:
                     raise ValueError("Invalid credentials file format")
+            
+            # Check OAuth client type
+            oauth_type = 'web' if 'web' in creds_data else 'installed'
+            client_id = creds_data.get(oauth_type, {}).get('client_id', 'Not found')
             print(f"✅ Verified credentials file is valid at: {credentials_file}")
+            print(f"   OAuth client type: {oauth_type}")
+            print(f"   Client ID: {client_id[:50]}..." if len(str(client_id)) > 50 else f"   Client ID: {client_id}")
+            
+            # Warn if using 'installed' type (should be 'web' for web apps)
+            if oauth_type == 'installed':
+                print(f"⚠️  WARNING: Using 'installed' type. For web applications, 'web' type is recommended.")
+                print(f"   Consider creating a new 'Web application' OAuth client in Google Cloud Console.")
         except Exception as e:
             print(f"⚠️  Credentials file exists but is invalid: {e}")
             return jsonify({
@@ -928,26 +1047,51 @@ def login():
             }), 500
         
         # Get redirect URI - use _external=True to get full URL
-        # For production, ensure HTTPS is used
         redirect_uri = url_for('callback', _external=True)
         
+        # Detect if we're on Render or production (check for RENDER environment or HTTPS)
+        is_production = (
+            os.getenv('RENDER') == 'true' or
+            os.getenv('FLASK_ENV') == 'production' or
+            request.scheme == 'https' or
+            'onrender.com' in request.host or
+            'railway.app' in request.host
+        )
+        
         # In production, force HTTPS
-        FLASK_ENV = os.getenv('FLASK_ENV', 'development')
-        if FLASK_ENV == 'production':
+        if is_production and redirect_uri.startswith('http://'):
             redirect_uri = redirect_uri.replace('http://', 'https://')
         
-        # Create OAuth flow
-        flow = Flow.from_client_secrets_file(
-            credentials_file,
-            scopes=GoogleFormGenerator.SCOPES,
-            redirect_uri=redirect_uri
-        )
+        print(f"🔗 [LOGIN] Redirect URI: {redirect_uri}")
+        print(f"   Is production: {is_production}")
+        print(f"   Request scheme: {request.scheme}")
+        print(f"   Request host: {request.host}")
+        print(f"   Full request URL: {request.url}")
+        print(f"   Expected redirect URIs in Google Cloud Console:")
+        print(f"     - http://localhost:5000/auth/callback")
+        print(f"     - https://google-from-generator.onrender.com/auth/callback")
+        print(f"   Make sure the redirect URI above matches EXACTLY one of these!")
         
-        authorization_url, state = flow.authorization_url(
-            access_type='offline',
-            include_granted_scopes='true',
-            prompt='consent'  # Force consent to get refresh token
-        )
+        # Create OAuth flow
+        try:
+            flow = Flow.from_client_secrets_file(
+                credentials_file,
+                scopes=GoogleFormGenerator.SCOPES,
+                redirect_uri=redirect_uri
+            )
+            
+            authorization_url, state = flow.authorization_url(
+                access_type='offline',
+                include_granted_scopes='true',
+                prompt='consent'  # Force consent to get refresh token
+            )
+            print(f"✅ OAuth flow created successfully")
+            print(f"   Authorization URL generated")
+        except Exception as flow_error:
+            print(f"❌ Error creating OAuth flow: {flow_error}")
+            print(f"   This might indicate a redirect_uri_mismatch")
+            print(f"   Redirect URI used: {redirect_uri}")
+            raise
         
         session['oauth_state'] = state
         session['oauth_flow_credentials_file'] = credentials_file
@@ -980,32 +1124,101 @@ def callback():
         credentials_file = session.get('oauth_flow_credentials_file', 'credentials.json')
         
         # Get redirect URI - use _external=True to get full URL
-        # For production, ensure HTTPS is used
         redirect_uri = url_for('callback', _external=True)
         
-        # In production, force HTTPS
-        FLASK_ENV = os.getenv('FLASK_ENV', 'development')
-        if FLASK_ENV == 'production':
-            redirect_uri = redirect_uri.replace('http://', 'https://')
-        
-        # Create flow and fetch token
-        flow = Flow.from_client_secrets_file(
-            credentials_file,
-            scopes=GoogleFormGenerator.SCOPES,
-            redirect_uri=redirect_uri
+        # Detect if we're on Render or production
+        is_production = (
+            os.getenv('RENDER') == 'true' or
+            os.getenv('FLASK_ENV') == 'production' or
+            request.scheme == 'https' or
+            'onrender.com' in request.host or
+            'railway.app' in request.host
         )
         
-        flow.fetch_token(authorization_response=request.url)
+        # In production, force HTTPS
+        if is_production and redirect_uri.startswith('http://'):
+            redirect_uri = redirect_uri.replace('http://', 'https://')
+        
+        print(f"🔗 [CALLBACK] Redirect URI: {redirect_uri}")
+        print(f"   Callback URL received: {request.url}")
+        print(f"   Make sure redirect URI matches what was used in /auth/login")
+        
+        # Create flow and fetch token
+        try:
+            flow = Flow.from_client_secrets_file(
+                credentials_file,
+                scopes=GoogleFormGenerator.SCOPES,
+                redirect_uri=redirect_uri
+            )
+            
+            print(f"✅ OAuth flow created for callback")
+            flow.fetch_token(authorization_response=request.url)
+            print(f"✅ Token fetched successfully")
+        except Exception as token_error:
+            print(f"❌ Error fetching token: {token_error}")
+            print(f"   Redirect URI used: {redirect_uri}")
+            print(f"   Callback URL: {request.url}")
+            if 'redirect_uri_mismatch' in str(token_error).lower():
+                print(f"   ⚠️  REDIRECT URI MISMATCH DETECTED!")
+                print(f"   Please verify the redirect URI in Google Cloud Console matches exactly:")
+                print(f"   {redirect_uri}")
+            raise
         credentials = flow.credentials
         
         # Get user info
+        user_email = None
         try:
             from googleapiclient.discovery import build
             user_info_service = build('oauth2', 'v2', credentials=credentials)
             user_info = user_info_service.userinfo().get().execute()
-            user_email = user_info.get('email', 'Unknown')
-        except:
+            user_email = user_info.get('email', None)
+            
+            # Try alternative methods to get email
+            if not user_email:
+                user_email = user_info.get('emailAddress', None)
+            
+            # Log user info for debugging
+            print(f"📧 User info retrieved: {user_info}")
+            print(f"📧 User email: {user_email}")
+            
+            # Fallback if still no email
+            if not user_email:
+                print(f"⚠️  Could not retrieve user email from user_info")
+                user_email = None
+            else:
+                print(f"✅ Retrieved user email: {user_email}")
+        except Exception as e:
+            print(f"⚠️  Error getting user info: {e}")
+            import traceback
+            traceback.print_exc()
+            user_email = None
+        
+        # If we still don't have email, try to get from token
+        if not user_email:
+            try:
+                # Try to extract from ID token if available
+                if hasattr(credentials, 'id_token') and credentials.id_token:
+                    import base64
+                    import json
+                    # ID token is a JWT, decode it (without verification for now)
+                    parts = credentials.id_token.split('.')
+                    if len(parts) >= 2:
+                        # Decode the payload (second part)
+                        payload = parts[1]
+                        # Add padding if needed
+                        payload += '=' * (4 - len(payload) % 4)
+                        decoded = base64.urlsafe_b64decode(payload)
+                        token_data = json.loads(decoded)
+                        user_email = token_data.get('email', None)
+                        if user_email:
+                            print(f"✅ Retrieved user email from ID token: {user_email}")
+            except Exception as token_error:
+                print(f"⚠️  Could not get email from ID token: {token_error}")
+        
+        # Final fallback
+        if not user_email:
             user_email = 'Unknown'
+            print(f"⚠️  Using fallback email: Unknown")
         
         # Store in session
         session['user_credentials'] = {

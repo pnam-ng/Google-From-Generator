@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Guide - AI Form Creator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_components.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .help-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .help-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .help-header h1 {
+            font-size: 2.5rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .help-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        .help-section {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .help-section h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .help-section h3 {
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .help-section p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        .help-section ol, .help-section ul {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .help-section li {
+            margin-bottom: 0.5rem;
+        }
+        .help-section code {
+            background: var(--bg);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: var(--primary);
+        }
+        .help-section .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        .help-section .info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        .help-section .success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        .help-section .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+        .help-section .screenshot-placeholder {
+            background: var(--bg);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            margin: 1rem 0;
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: opacity 0.2s;
+        }
+        .back-button:hover {
+            opacity: 0.8;
+        }
+        .faq-item {
+            margin-bottom: 1.5rem;
+        }
+        .faq-question {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .faq-answer {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-wrapper">
+                <div class="header-brand">
+                    <h1>AI Form Creator</h1>
+                    <p class="header-subtitle">Help & Guide</p>
+                </div>
+                <div id="auth-section" class="auth-section">
+                    {% if user_logged_in %}
+                        <div class="auth-info">
+                            <span class="user-email">{{ user_email }}</span>
+                            <button class="btn-auth btn-logout" onclick="logout()">Logout</button>
+                        </div>
+                    {% else %}
+                        <a href="/auth/login" class="btn-auth btn-login">Sign in</a>
+                    {% endif %}
+                </div>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <div class="help-container">
+                <a href="/" class="back-button">
+                    ← Back to Home
+                </a>
+
+                <div class="help-header">
+                    <h1>Help & Guide</h1>
+                    <p>Everything you need to know about using AI Form Creator</p>
+                </div>
+
+                <!-- Sign In Guide -->
+                <div class="help-section">
+                    <h2>🔐 How to Sign In</h2>
+                    
+                    <h3>Step 1: Click "Sign In" Button</h3>
+                    <p>On the main page, click the <strong>"Sign In"</strong> button in the top right corner.</p>
+                    
+                    <h3>Step 2: Choose Your Google Account</h3>
+                    <p>You'll be redirected to Google's sign-in page. Select the Google account you want to use.</p>
+                    
+                    <h3>Step 3: Handle the "Unverified App" Warning (If You See It)</h3>
+                    <div class="warning">
+                        <strong>⚠️ Important: Unverified App Warning</strong><br>
+                        If you see a screen saying <strong>"Google hasn't verified this app"</strong>, this is normal for apps that haven't completed Google's verification process yet. The app is safe to use if you trust the developer.
+                    </div>
+                    
+                    <p>If you see the warning screen, you have two options:</p>
+                    
+                    <h4>Option A: Go Back to Safety (Not Recommended)</h4>
+                    <p>If you click "BACK TO SAFETY", you won't be able to use the app. This is only recommended if you don't trust the developer.</p>
+                    
+                    <h4>Option B: Continue Anyway (Recommended if You Trust the Developer)</h4>
+                    <ol>
+                        <li>Click the <strong>"Advanced"</strong> link at the bottom left</li>
+                        <li>You'll see a message: "Continue only if you understand the risks and trust the developer"</li>
+                        <li>Click the link that says <strong>"Go to [App Name] (unsafe)"</strong></li>
+                        <li>This will take you to the consent screen</li>
+                    </ol>
+                    
+                    <div class="info">
+                        <strong>💡 Why is this app unverified?</strong><br>
+                        Google requires apps to go through a verification process if they request access to sensitive data. Many legitimate apps, especially those in development or used by a small number of users, haven't completed this process yet. This doesn't mean the app is unsafe - it just means Google hasn't reviewed it yet.
+                    </div>
+                    
+                    <h3>Step 4: Review Permissions</h3>
+                    <p>After proceeding past the warning (if shown), you'll see the consent screen. Google will show you what permissions the app is requesting. This includes:</p>
+                    <ul>
+                        <li><strong>View and manage your Google Forms</strong> - To create forms for you</li>
+                        <li><strong>View and manage files in your Google Drive</strong> - To read documents if you use the "Docs" feature</li>
+                        <li><strong>View your email address</strong> - To identify which account you're using</li>
+                    </ul>
+                    
+                    <div class="info">
+                        <strong>💡 Why these permissions?</strong><br>
+                        The app needs these permissions to create Google Forms on your behalf and read Google Docs if you choose to use that feature. Your data is only used for creating forms - we don't store or share your information.
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>⚠️ You may see another warning on the consent screen:</strong><br>
+                        The consent screen may show an orange box saying "This app hasn't been verified by Google." This is the same warning - you can safely proceed if you trust the developer. Click <strong>"Continue"</strong> to proceed.
+                    </div>
+                    
+                    <h3>Step 5: Click "Continue" or "Allow"</h3>
+                    <p>Click the <strong>"Continue"</strong> button to grant permissions and complete the sign-in process.</p>
+                    
+                    <div class="success">
+                        <strong>✅ Success!</strong><br>
+                        After granting permissions, you'll be redirected back to the app and your email will be displayed in the top right corner.
+                    </div>
+                </div>
+
+                <!-- Troubleshooting -->
+                <div class="help-section">
+                    <h2>🔧 Troubleshooting Sign-In Issues</h2>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">❓ I see "Error 400: redirect_uri_mismatch"</div>
+                        <div class="faq-answer">
+                            <p>This error means the redirect URI isn't configured correctly. This is usually a server-side configuration issue. Contact the administrator or check if the app is properly configured.</p>
+                            <p><strong>For developers:</strong> Make sure the redirect URI in Google Cloud Console matches exactly what the app is using.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">❓ I see "Google hasn't verified this app" warning</div>
+                        <div class="faq-answer">
+                            <p>This is a normal warning for apps that haven't completed Google's verification process. It doesn't mean the app is unsafe.</p>
+                            <p><strong>To proceed:</strong></p>
+                            <ol>
+                                <li>Click "Advanced" at the bottom left</li>
+                                <li>Click "Go to [App Name] (unsafe)" link</li>
+                                <li>Continue with the sign-in process</li>
+                            </ol>
+                            <p><strong>Is it safe?</strong> Yes, if you trust the developer. The warning appears because Google hasn't reviewed the app yet, not because it's malicious. Many legitimate apps show this warning, especially during development or when used by a small number of users.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">❓ I see "This app hasn't been verified by Google" on the consent screen</div>
+                        <div class="faq-answer">
+                            <p>This is the same warning, just shown on the consent screen. You can safely click <strong>"Continue"</strong> if you trust the developer.</p>
+                            <p>The orange warning box is informational - it's telling you that Google hasn't reviewed this app yet. This is common for:</p>
+                            <ul>
+                                <li>Apps in development</li>
+                                <li>Apps with a small user base</li>
+                                <li>Apps that haven't submitted for verification yet</li>
+                            </ul>
+                            <p>It doesn't mean the app is unsafe - it just means Google hasn't verified it yet.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">❓ I see "Access blocked: This app's request is invalid"</div>
+                        <div class="faq-answer">
+                            <p>This usually means:</p>
+                            <ol>
+                                <li>The app is in testing mode and your email isn't added as a test user</li>
+                                <li>The OAuth consent screen isn't properly configured</li>
+                            </ol>
+                            <p><strong>Solution:</strong> Contact the app administrator to add your email as a test user.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">❓ I clicked "Sign In" but nothing happens</div>
+                        <div class="faq-answer">
+                            <p>Try these steps:</p>
+                            <ol>
+                                <li>Check if pop-ups are blocked in your browser</li>
+                                <li>Try a different browser (Chrome, Firefox, Edge)</li>
+                                <li>Clear your browser cache and cookies</li>
+                                <li>Try in an incognito/private window</li>
+                                <li>Check your internet connection</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">❓ I granted permissions but still see "Unknown" for my email</div>
+                        <div class="faq-answer">
+                            <p>This might be a temporary issue. Try:</p>
+                            <ol>
+                                <li>Refresh the page</li>
+                                <li>Sign out and sign in again</li>
+                                <li>Clear browser cache and try again</li>
+                            </ol>
+                            <p>If the problem persists, check the browser console for errors or contact support.</p>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question">❓ I'm worried about giving permissions</div>
+                        <div class="faq-answer">
+                            <p><strong>Your privacy is important!</strong> Here's what the app does with your permissions:</p>
+                            <ul>
+                                <li>✅ Creates Google Forms when you request them</li>
+                                <li>✅ Reads Google Docs only if you use the "Docs" feature</li>
+                                <li>✅ Shows your email to identify which account you're using</li>
+                                <li>❌ Does NOT store your personal data</li>
+                                <li>❌ Does NOT share your information with third parties</li>
+                                <li>❌ Does NOT access your data without your explicit action</li>
+                            </ul>
+                            <p>You can revoke permissions at any time by going to <a href="https://myaccount.google.com/permissions" target="_blank">Google Account Permissions</a>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Using the App -->
+                <div class="help-section">
+                    <h2>📝 How to Use the App</h2>
+                    
+                    <h3>Creating Forms from Text</h3>
+                    <ol>
+                        <li>Type or paste your form description in the "Text" tab</li>
+                        <li>Click "Generate Form"</li>
+                        <li>Wait for the AI to create your form</li>
+                        <li>Click "Open Form" to view it in Google Forms</li>
+                    </ol>
+
+                    <h3>Creating Forms from File</h3>
+                    <ol>
+                        <li>Go to the "File" tab</li>
+                        <li>Upload a text file (.txt) with your form description</li>
+                        <li>Click "Generate Form"</li>
+                        <li>View your form in Google Forms</li>
+                    </ol>
+
+                    <h3>Creating Forms from Google Docs</h3>
+                    <ol>
+                        <li>Go to the "Docs" tab</li>
+                        <li>Paste the Google Docs URL (make sure the document is shared with your account)</li>
+                        <li>Click "Generate Form"</li>
+                        <li>The app will read the document and create a form</li>
+                    </ol>
+
+                    <h3>Creating Forms from Script</h3>
+                    <ol>
+                        <li>Go to the "Script" tab</li>
+                        <li>Write your form script using the special syntax</li>
+                        <li>Click "Generate Form"</li>
+                        <li>Your form will be created based on the script</li>
+                    </ol>
+                </div>
+
+                <!-- Permissions Explained -->
+                <div class="help-section">
+                    <h2>🔑 Understanding Permissions</h2>
+                    
+                    <h3>What Each Permission Does</h3>
+                    
+                    <div class="info">
+                        <strong>Google Forms API</strong><br>
+                        Allows the app to create, view, and manage Google Forms on your behalf. This is the core functionality - without this, the app cannot create forms for you.
+                    </div>
+
+                    <div class="info">
+                        <strong>Google Drive API</strong><br>
+                        Only used when you use the "Docs" feature. Allows the app to read Google Docs files that you specify. The app only reads documents you explicitly provide URLs for.
+                    </div>
+
+                    <div class="info">
+                        <strong>Google Docs API</strong><br>
+                        Also only used for the "Docs" feature. Allows the app to read the content of Google Docs files.
+                    </div>
+
+                    <div class="info">
+                        <strong>User Info (Email)</strong><br>
+                        Allows the app to see your email address to identify which account you're using. This helps personalize your experience.
+                    </div>
+
+                    <h3>Revoking Permissions</h3>
+                    <p>You can revoke permissions at any time:</p>
+                    <ol>
+                        <li>Go to <a href="https://myaccount.google.com/permissions" target="_blank">Google Account Permissions</a></li>
+                        <li>Find "AI Form Creator" or the app name</li>
+                        <li>Click "Remove Access"</li>
+                    </ol>
+                    <p>After revoking, you'll need to sign in again to use the app.</p>
+                </div>
+
+                <!-- Contact & Support -->
+                <div class="help-section">
+                    <h2>💬 Need More Help?</h2>
+                    <p>If you're still having issues:</p>
+                    <ul>
+                        <li>Check the browser console for error messages (Press F12 → Console tab)</li>
+                        <li>Try signing in with a different Google account</li>
+                        <li>Make sure you're using a supported browser (Chrome, Firefox, Edge, Safari)</li>
+                        <li>Check if JavaScript is enabled in your browser</li>
+                    </ul>
+                    
+                    <div class="warning">
+                        <strong>⚠️ Still having problems?</strong><br>
+                        If you continue to experience issues, please contact the app administrator with:
+                        <ul>
+                            <li>The error message you see</li>
+                            <li>What browser you're using</li>
+                            <li>Any error messages from the browser console</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+

@@ -1077,8 +1077,27 @@ function updateAuthUI(userEmail) {
     const authSection = document.getElementById('auth-section');
     if (!authSection) return;
     
-    // Update auth section if needed (for dynamic updates)
-    // The initial state is set by server-side template
+    // Update user email display
+    const userEmailElement = authSection.querySelector('.user-email');
+    if (userEmailElement && userEmail) {
+        userEmailElement.textContent = userEmail;
+    }
+    
+    // Show auth info if user is logged in
+    if (userEmail) {
+        const authInfo = authSection.querySelector('.auth-info');
+        if (!authInfo) {
+            // Create auth info div if it doesn't exist
+            const newAuthInfo = document.createElement('div');
+            newAuthInfo.className = 'auth-info';
+            newAuthInfo.innerHTML = `
+                <span class="user-email">${userEmail}</span>
+                <button class="btn-auth btn-logout" onclick="logout()">Logout</button>
+            `;
+            authSection.innerHTML = '';
+            authSection.appendChild(newAuthInfo);
+        }
+    }
 }
 
 async function logout() {
