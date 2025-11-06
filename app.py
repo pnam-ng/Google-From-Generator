@@ -196,6 +196,14 @@ def index():
     user_email = user_creds.get('user_email', None) if user_creds else None
     return render_template('index.html', user_logged_in=user_creds is not None, user_email=user_email)
 
+@app.route('/help')
+def help_page():
+    """Help page for sign-in troubleshooting."""
+    # Check if user is authenticated
+    user_creds = session.get('user_credentials')
+    user_email = user_creds.get('user_email', None) if user_creds else None
+    return render_template('help.html', user_logged_in=user_creds is not None, user_email=user_email or 'Unknown')
+
 @app.route('/api/create-from-text', methods=['POST'])
 def create_from_text():
     """Create form from text input."""
@@ -500,14 +508,47 @@ def create_from_docs():
         
         log_capture.write("✅ AI creator initialized successfully\n")
         
+        # Get user credentials (for per-user authentication)
+        user_creds = get_user_credentials()
+        
         # Capture logs during form structure generation
         with redirect_stdout(log_capture):
             log_capture.write("📄 Reading Google Docs document...\n")
             log_capture.write(f"🔗 URL: {doc_url}\n")
-            log_capture.write("🤖 Generating form structure using Gemini AI...\n")
             
-            # Generate form structure from Google Docs
-            form_structure = ai_creator.generate_form_structure_from_google_doc(doc_url)
+            # Use user credentials if available, otherwise use server credentials
+            if user_creds:
+                log_capture.write("👤 Using your Google account credentials\n")
+                # Create a new form generator with user credentials for reading docs
+                form_generator = GoogleFormGenerator(user_credentials=user_creds)
+                # Read the document using user's credentials
+                try:
+                    doc_content = form_generator.read_google_doc(doc_url)
+                    log_capture.write(f"✅ Successfully read Google Docs content ({len(doc_content)} characters)\n")
+                except Exception as doc_error:
+                    error_msg = str(doc_error)
+                    log_capture.write(f"❌ Error reading Google Docs: {error_msg}\n")
+                    raise Exception(f"Error reading Google Docs: {error_msg}") from doc_error
+                
+                # Generate form structure from content using Gemini
+                log_capture.write("🤖 Generating form structure using Gemini AI...\n")
+                form_structure = ai_creator.gemini.generate_from_text(doc_content)
+            else:
+                log_capture.write("⚠️  No user authentication found\n")
+                log_capture.write("   Attempting to use server account credentials...\n")
+                try:
+                    # Use default form generator (server credentials)
+                    form_structure = ai_creator.generate_form_structure_from_google_doc(doc_url)
+                except Exception as auth_error:
+                    error_msg = str(auth_error)
+                    if 'OAuth authentication required' in error_msg or 'authentication' in error_msg.lower():
+                        log_capture.write("❌ Authentication required to read Google Docs\n")
+                        raise Exception(
+                            "Google OAuth authentication is required to read Google Docs. "
+                            "Please click the 'Sign in' button in the header to authenticate with your Google account, "
+                            "then try again."
+                        ) from auth_error
+                    raise
             
             log_capture.write("✅ Form structure generated successfully!\n")
             log_capture.write(f"📋 Found {len(form_structure.get('questions', []))} questions\n")
