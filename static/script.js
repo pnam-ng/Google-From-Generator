@@ -611,8 +611,8 @@ function showSuccess(formUrl, editUrl) {
         editUrlElement.href = editUrl || formUrl.replace('/viewform', '/edit');
     }
     
-    // Store form URL for copy functionality
-    window.currentFormUrl = formUrl;
+    // Store edit URL for copy functionality (user wants to copy edit URL, not view URL)
+    window.currentFormUrl = editUrl || formUrl.replace('/viewform', '/edit');
     
     document.getElementById('result-section').style.display = 'block';
     document.getElementById('error-section').style.display = 'none';
