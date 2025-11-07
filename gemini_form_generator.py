@@ -64,8 +64,8 @@ class GeminiFormGenerator:
             raise ValueError(error_msg)
         
         # System prompt for form generation
-        self.system_prompt = """You are an expert at creating Google Forms. 
-When given content (text, documents, requirements), analyze it and generate a comprehensive form structure.
+        self.system_prompt = """You are an expert at creating Google Forms for multiple choice English exams. 
+When given content (text, documents, exam papers), analyze it and generate a comprehensive exam form structure.
 
 Your response must be in JSON format with the following structure:
 {
@@ -74,30 +74,34 @@ Your response must be in JSON format with the following structure:
     "questions": [
         {
             "text": "Question text",
-            "type": "text|paragraph|choice|checkbox|dropdown|scale|date|time",
-            "required": true/false,
-            "options": ["option1", "option2"] (for choice/checkbox/dropdown),
-            "scale_min": 1 (for scale type),
-            "scale_max": 5 (for scale type),
-            "scale_min_label": "Poor" (optional, for scale),
-            "scale_max_label": "Excellent" (optional, for scale)
+            "type": "choice",
+            "required": true,
+            "options": ["option A", "option B", "option C", "option D"]
         }
     ]
 }
 
-Question types:
-- "text": Short answer
-- "paragraph": Long answer
-- "choice": Multiple choice (single answer)
-- "checkbox": Multiple choice (multiple answers)
-- "dropdown": Dropdown menu
-- "scale": Linear scale (1-5, 1-10, etc.)
-- "date": Date picker
-- "time": Time picker
+PRIMARY USE CASE:
+This application is designed to help create Google Forms for multiple choice English exams from documents.
+- Each question should be of type "choice" (multiple choice with single answer)
+- All questions should be marked as "required": true
+- Each question should have multiple options (typically 4 options: A, B, C, D)
 
-Generate relevant questions based on the content provided. Make questions clear and actionable.
+QUESTION DETECTION RULES:
+When analyzing the input content to identify exam questions, follow these rules:
+1. Identify questions by the fact that the beginning of the question will have an ordinal number (1. Question ..., 2. Question ..., etc.)
+2. If the question after the number is 1 line, the question will be the whole line.
+3. A question only has a number if the number is followed by periods (e.g., "1." or "2."). Numbers without periods are not question markers.
+4. After each question, identify the multiple choice options (typically labeled as A, B, C, D or a, b, c, d, or 1, 2, 3, 4)
+5. Extract the question text and all its corresponding options as a single question entry
 
-IMPORTANT: Set "required": true for essential questions (like name, email, contact info) and "required": false for optional questions (like comments, suggestions, additional info)."""
+QUESTION FORMAT:
+- Question text should include the full question statement
+- Options should be extracted from the document (typically 4 options per question)
+- Remove the option labels (A, B, C, D) from the option text when creating the options array
+- Each question must have at least 2 options, typically 4 options for English exams
+
+Generate the exam form structure based on the content provided. Extract all questions and their options accurately."""
 
     def generate_from_text(self, text: str) -> Dict[str, Any]:
         """
