@@ -258,20 +258,41 @@ Generate a Google Form structure based on the exam document above. Return ONLY v
         except json.JSONDecodeError as e:
             print(f"❌ Error parsing Gemini response: {e}")
             print(f"Response preview: {response_text[:500]}")
-            print("\nTrying to extract JSON from response...")
+            print("\nTrying to fix JSON issues...")
             
             # Try to fix common JSON issues
             try:
                 # Remove markdown if present
                 cleaned = self._clean_json_response(response_text)
+                
+                # Always try to fix control characters if JSON parsing fails
+                # (control characters are a common issue with Gemini responses)
+                print("Attempting to fix control characters in JSON strings...")
+                cleaned = self._fix_json_control_characters(cleaned)
+                
                 form_structure = json.loads(cleaned)
+                print("✅ Successfully fixed and parsed JSON!")
                 return form_structure
-            except:
-                raise ValueError(
-                    f"Failed to parse form structure from AI response.\n"
-                    f"Error: {e}\n"
-                    f"Response: {response_text[:1000]}"
-                )
+            except json.JSONDecodeError as e2:
+                print(f"Still failing after control character fix: {e2}")
+                # Try one more time with more aggressive cleaning
+                try:
+                    # Remove any remaining problematic characters
+                    # This is a last resort - might not always work
+                    cleaned = cleaned.replace('\x00', '')  # Remove null bytes
+                    cleaned = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f]', '', cleaned)  # Remove other control chars outside strings
+                    
+                    form_structure = json.loads(cleaned)
+                    print("✅ Successfully parsed after aggressive cleaning!")
+                    return form_structure
+                except Exception as e3:
+                    raise ValueError(
+                        f"Failed to parse form structure from AI response.\n"
+                        f"Original error: {e}\n"
+                        f"Control character fix error: {e2}\n"
+                        f"Aggressive fix error: {e3}\n"
+                        f"Response preview: {response_text[:1000]}"
+                    )
         except Exception as e:
             print(f"Error generating form: {e}")
             raise
@@ -408,6 +429,83 @@ Generate a Google Form structure based on the exam document above. Return ONLY v
         response = response.strip()
         
         return response
+    
+    def _fix_json_control_characters(self, json_str: str) -> str:
+        """
+        Fix control characters in JSON string values by properly escaping them.
+        
+        This function walks through the JSON string and escapes control characters
+        only within string values (between quotes), preserving the JSON structure.
+        
+        Args:
+            json_str: JSON string that may contain unescaped control characters
+        
+        Returns:
+            JSON string with control characters properly escaped
+        """
+        result = []
+        i = 0
+        in_string = False
+        escape_next = False
+        
+        while i < len(json_str):
+            char = json_str[i]
+            
+            if escape_next:
+                # Next character is escaped, so copy it as-is
+                result.append(char)
+                escape_next = False
+                i += 1
+                continue
+            
+            if char == '\\':
+                # Escape character - next char should be preserved
+                result.append(char)
+                escape_next = True
+                i += 1
+                continue
+            
+            if char == '"':
+                # Check if this quote is escaped (odd number of backslashes before it)
+                backslash_count = 0
+                j = i - 1
+                while j >= 0 and json_str[j] == '\\':
+                    backslash_count += 1
+                    j -= 1
+                
+                if backslash_count % 2 == 0:
+                    # Not escaped, so it's a real quote - toggle string state
+                    in_string = not in_string
+                
+                result.append(char)
+                i += 1
+                continue
+            
+            if in_string:
+                # We're inside a string, escape control characters
+                if ord(char) < 32:  # Control character (0x00-0x1F)
+                    if char == '\n':
+                        result.append('\\n')
+                    elif char == '\r':
+                        result.append('\\r')
+                    elif char == '\t':
+                        result.append('\\t')
+                    elif char == '\b':
+                        result.append('\\b')
+                    elif char == '\f':
+                        result.append('\\f')
+                    else:
+                        # Other control characters
+                        result.append(f'\\u{ord(char):04x}')
+                else:
+                    result.append(char)
+            else:
+                # Outside string, copy as-is
+                result.append(char)
+            
+            i += 1
+        
+        return ''.join(result)
     
     def generate_from_file_content(self, file_content: bytes, filename: str) -> Dict[str, Any]:
         """
